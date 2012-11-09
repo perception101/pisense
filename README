@@ -1,0 +1,2 @@
+First stab at a simple Munin plugin to track temperature,
+clock speeds and voltages on the Raspberry pi.
