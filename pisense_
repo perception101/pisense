@@ -31,6 +31,11 @@ For example,
 
 will monitor the clock speeds of your pi.
 
+Note:
+
+If you do not specify anything, or the special "multi", the plugin
+will revert to multipgraph behavior.
+
 =head1 BUGS
 
 None known.
