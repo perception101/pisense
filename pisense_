@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # -*- sh -*-
 
 : << =cut
@@ -31,6 +31,11 @@ For example,
 
 will monitor the clock speeds of your pi.
 
+Note:
+
+If you do not specify anything, or the special "multi", the plugin
+will revert to multipgraph behavior.
+
 =head1 BUGS
 
 None known.
@@ -47,6 +52,7 @@ This plugin is shamelessley based on the ip_ plugin (structure).
 =head1 AUTHOR
 
 Tony (tony@darkstorm.co.uk).
+Multigraph by Steve Schnepp <steve.schnepp@pwkf.org>.
 
 =head1 LICENSE
 
@@ -57,8 +63,13 @@ It's yours, do with it what you like.
 . $MUNIN_LIBDIR/plugins/plugin.sh
 
 sensor=${0##*/pisense_}
+if [ -z "$sensor" -o "$sensor" = "multi" ]
+then
+	# multigraph asked
+	MULTI=1
+fi
 
-if [[ "$1" == "autoconf" ]]; then
+if [ "$1" = "autoconf" ]; then
     if ! /opt/vc/bin/vcgencmd firmware >/dev/null 2>/dev/null; then
         echo "no (could not run /opt/vc/bin/vcgencmd as user $(whoami))"
         exit 0
@@ -69,7 +80,7 @@ if [[ "$1" == "autoconf" ]]; then
 fi
 
 # this is flawed, vcgencmd always returns with RC 0.  Needs expanding.
-if [[ "$1" == "suggest" ]]; then
+if [ "$1" = "suggest" ]; then
     if /opt/vc/bin/vcgencmd measure_temp >/dev/null 2>/dev/null; then
         echo temp
     fi
@@ -82,10 +93,11 @@ if [[ "$1" == "suggest" ]]; then
     exit 0
 fi
 
-if [[ "$1" == "config" ]]; then
+if [ "$1" = "config" ]; then
 
-    if [[ "$sensor" == "temp" ]]
+    if [ ! -z "$MULTI" -o "$sensor" = "temp" ]
     then
+        [ ! -z "$MULTI" ] && echo "multigraph pisense_temp"
         echo "graph_title Raspberry Pi core temp"
         echo "graph_args --base 1000"
         echo "graph_vlabel degrees Celsius"
@@ -93,8 +105,9 @@ if [[ "$1" == "config" ]]; then
         echo "temp.label Core Temperature"
         echo "temp.min 0"
     fi
-    if [[ "$sensor" == "clock" ]]
+    if [ ! -z "$MULTI" -o "$sensor" = "clock" ]
     then
+        [ ! -z "$MULTI" ] && echo "multigraph pisense_clock"
         echo "graph_title Raspberry Pi clock frequencies"
         echo "graph_args --base 1000"
         echo "graph_vlabel herz"
@@ -106,8 +119,9 @@ if [[ "$1" == "config" ]]; then
            echo "clock$clock.type GAUGE"
         done
     fi
-    if [[ "$sensor" == "volt" ]]
+    if [ ! -z "$MULTI" -o "$sensor" = "volt" ]
     then
+        [ ! -z "$MULTI" ] && echo "multigraph pisense_volt"
         echo "graph_title Raspberry Pi voltages"
         echo "graph_args --base 1000"
         echo "graph_vlabel volts"
@@ -123,21 +137,24 @@ if [[ "$1" == "config" ]]; then
     exit 0
 fi;
 
-if [[ "$sensor" == "temp" ]]
+if [ ! -z "$MULTI" -o "$sensor" = "temp" ]
 then
+    [ ! -z "$MULTI" ] && echo "multigraph pisense_temp"
     temp=$(/opt/vc/bin/vcgencmd measure_temp | awk -F"=" '{print $2}' | awk -F"'" '{print $1}')
     echo "temp.value $temp"
 fi
-if [[ "$sensor" == "clock" ]]
+if [ ! -z "$MULTI" -o "$sensor" = "clock" ]
 then
+    [ ! -z "$MULTI" ] && echo "multigraph pisense_clock"
     for clock in arm core h264 isp v3d uart pwm emmc pixel vec hdmi dpi
     do
        clockval=$(/opt/vc/bin/vcgencmd measure_clock $clock | awk -F"=" '{print $2}')
        echo "clock$clock.value $clockval"
     done
 fi
-if [[ "$sensor" == "volt" ]]
+if [ ! -z "$MULTI" -o "$sensor" = "volt" ]
 then
+   [ ! -z "$MULTI" ] && echo "multigraph pisense_volt"
    for volt in core sdram_c sdram_i sdram_p
    do
        voltage=$(/opt/vc/bin/vcgencmd measure_volts $volt | awk -F"=" '{print $2}' | tr -d "V")
