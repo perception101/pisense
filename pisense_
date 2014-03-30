@@ -110,11 +110,11 @@ if [ "$1" = "config" ]; then
         [ ! -z "$MULTI" ] && echo "multigraph pisense_clock"
         echo "graph_title Raspberry Pi clock frequencies"
         echo "graph_args --base 1000"
-        echo "graph_vlabel herz"
+        echo "graph_vlabel Hertz"
         echo "graph_category sensors"
         for clock in arm core h264 isp v3d uart pwm emmc pixel vec hdmi dpi
         do
-           echo "clock$clock.label $clock clock Frequency"
+           echo "clock$clock.label $clock clock frequency"
            echo "clock$clock.min 0"
            echo "clock$clock.type GAUGE"
         done
@@ -124,7 +124,7 @@ if [ "$1" = "config" ]; then
         [ ! -z "$MULTI" ] && echo "multigraph pisense_volt"
         echo "graph_title Raspberry Pi voltages"
         echo "graph_args --base 1000"
-        echo "graph_vlabel volts"
+        echo "graph_vlabel Volts"
         echo "graph_category sensors"
         for volt in core sdram_c sdram_i sdram_p
         do
