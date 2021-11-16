@@ -69,9 +69,19 @@ then
 	MULTI=1
 fi
 
+VCGENCMD=""
+for FILE in /opt/vc/bin/vcgencmd /usr/bin/vcgencmd; do
+    if [ -e "$FILE" ]; then
+        VCGENCMD="$FILE"
+    fi
+done
+
 if [ "$1" = "autoconf" ]; then
-    if ! /opt/vc/bin/vcgencmd firmware >/dev/null 2>/dev/null; then
-        echo "no (could not run /opt/vc/bin/vcgencmd as user $(whoami))"
+    if [ "$VCGENCMD" = "" ]; then
+        echo "no (could not locate vcgencmd)"
+	exit 0
+    elif ! "$VCGENCMD" firmware >/dev/null 2>/dev/null; then
+        echo "no (could not run $VCGENCMD as user $(whoami))"
         exit 0
     else
         echo yes
@@ -79,15 +89,20 @@ if [ "$1" = "autoconf" ]; then
     fi
 fi
 
+if [ "$VCGENCMD" = "" ]; then
+    echo "vcgencmd not found"
+    exit 1
+fi
+
 # this is flawed, vcgencmd always returns with RC 0.  Needs expanding.
 if [ "$1" = "suggest" ]; then
-    if /opt/vc/bin/vcgencmd measure_temp >/dev/null 2>/dev/null; then
+    if "$VCGENCMD" measure_temp >/dev/null 2>/dev/null; then
         echo temp
     fi
-    if /opt/vc/bin/vcgencmd measure_volts >/dev/null 2>/dev/null; then
+    if "$VCGENCMD" measure_volts >/dev/null 2>/dev/null; then
         echo volt
     fi
-    if /opt/vc/bin/vcgencmd measure_clock core >/dev/null 2>/dev/null; then
+    if "$VCGENCMD" measure_clock core >/dev/null 2>/dev/null; then
         echo clock
     fi
     exit 0
@@ -140,7 +155,7 @@ fi;
 if [ ! -z "$MULTI" -o "$sensor" = "temp" ]
 then
     [ ! -z "$MULTI" ] && echo "multigraph pisense_temp"
-    temp=$(/opt/vc/bin/vcgencmd measure_temp | awk -F"=" '{print $2}' | awk -F"'" '{print $1}')
+    temp=$("$VCGENCMD" measure_temp | awk -F"=" '{print $2}' | awk -F"'" '{print $1}')
     echo "temp.value $temp"
 fi
 if [ ! -z "$MULTI" -o "$sensor" = "clock" ]
@@ -148,7 +163,7 @@ then
     [ ! -z "$MULTI" ] && echo "multigraph pisense_clock"
     for clock in arm core h264 isp v3d uart pwm emmc pixel vec hdmi dpi
     do
-       clockval=$(/opt/vc/bin/vcgencmd measure_clock $clock | awk -F"=" '{print $2}')
+       clockval=$("$VCGENCMD" measure_clock $clock | awk -F"=" '{print $2}')
        echo "clock$clock.value $clockval"
     done
 fi
@@ -157,7 +172,7 @@ then
    [ ! -z "$MULTI" ] && echo "multigraph pisense_volt"
    for volt in core sdram_c sdram_i sdram_p
    do
-       voltage=$(/opt/vc/bin/vcgencmd measure_volts $volt | awk -F"=" '{print $2}' | tr -d "V")
+       voltage=$("$VCGENCMD" measure_volts $volt | awk -F"=" '{print $2}' | tr -d "V")
        echo "volt$volt.value $voltage"
    done
 fi
